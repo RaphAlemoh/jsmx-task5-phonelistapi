@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" type="text/css" rel="stylesheet">
     <title>Phone Contact Api using JS</title>
     <style>
         .unordered-list{
@@ -47,13 +48,25 @@
         input {
         padding:.5rem 2rem;
         }
+
+        a{
+            text-decoration: none;
+        }
+
+        a:hover{
+            text-decoration: underline;
+            color: green;
+        }
         </style>
 </head>
 <body>
     <div class="container">
         <h1 style="text-align: center;">State|Region Police Command</h1>
-        <input type="text" id="search-text" placeholder="search phone..">
-        <div id="phones"></div>
+        <div style="display:flex; justify-content: center;">
+            <div>
+                <input type="text" id="search-text" placeholder="search command.." >
+            </div>
+        </div>
         <ul class="unordered-list" id="phone-list">
             <img id="loader" style="display: none;" class="loader" src="loader.gif" alt="loading" width="20px" height="20px" >
         </ul>
@@ -62,65 +75,56 @@
     <script>    
 
         document.addEventListener('DOMContentLoaded', () => {
-            const getPhoneList = () => {
+        const getPhoneList = () => {
             document.getElementById('loader').style.display = "block";
-                fetch('https://emajency.com/js/number.json')
+                fetch('https://emajency.com/js/numbers.json')
                 .then(resp => resp.json())
-                .then(data => renderPhoneList(data))
+                .then(data => {
+                   renderPhoneList(data);
+                })
                 .catch( err => {
                     document.getElementById('loader').style.display = "none";
                     document.querySelector('#phone-list').append(`${err}`);   
                 })
             }
 
-            const renderPhoneList = (data) => {
-                console.log(data);
+        const renderPhoneList = (data) => {
                 const phoneDetails = data ;
-                for(const phone of data){
+                const filters = { searchText:"" }
+                const renderPhoneDetails = (arr, filters) => {
+                const filteredPhone = arr.filter((phone) => {
+                    return phone.name.toLowerCase().includes(filters.searchText.toLowerCase());
+                });
+                
+                filteredPhone.forEach( (phone) => {
                     const phoneUl = document.querySelector('#phone-list');
                     const phoneLi = document.createElement('li');
-                    const br = document.createElement('br');
-                    const hr = document.createElement('hr');
-                    phoneLi.dataset.id = phone.id;
                     phoneLi.innerHTML =
                     `<div class="card"> 
                         <div class="container">
-                        <h4><b>phone </b><br> ${phone['name']} </h4>
-                        <span><b>Capital </b><br> ${phone['capital']}</span>
-                        <p> 
-                            <img src="${phone['flag']}" alt="phone flag" style="width:100%"/>   
-                            Region : ${phone['region']}                      
-                        </p>
+                        <h4><b>Name </b><br> ${phone['name']} </h4>
+                        <span><b>Phone </b><br> 
+                            <a class="text-white underline" href="tel:${phone['number']}">
+                                <i class="fa fa-phone"></i> ${phone['number']} </a>    
+                        </span>
                         </div>
                         </div>`;
                     document.getElementById('loader').style.display = "none";
                     phoneUl.append(phoneLi);
+                });
                 }
+
+                renderPhoneDetails(phoneDetails, filters);
+
+                document.querySelector("#search-text").addEventListener("input", function(e){
+                filters.searchText = e.target.value;
+                document.querySelector("#phone-list").innerHTML = `
+                <img id="loader" style="display: none;" class="loader" src="loader.gif" alt="loading" width="20px" height="20px" >
+                `;
+                renderPhoneDetails(phoneDetails, filters);
+
+                });      
             }
-
-        const filters = {//when input event is fired, input values are added to the searchText value
-        searchText:""
-        }
-        const renderPhoneDetails = function(arr, filters){
-        const filteredPhone = arr.filter(function(phone){
-            return phone.title.toLowerCase().includes(filters.searchText.toLowerCase());
-        });
-        
-        document.querySelector("#phones").innerHTML = "";//clear phones area before each rendition
-        
-        filteredPhone.forEach( (phone) => {
-            const phoneEl = document.createElement("p");
-            phoneEl.textContent = phone.title;
-            document.querySelector("#phones").appendChild(phoneEl);
-        });
-        }
-        renderPhoneDetails(phoneDetails, filters);//initial render to show actual data in phoneDetails array
-
-        document.querySelector("#search-text").addEventListener("input", function(e){
-        filters.searchText = e.target.value;//every input value sent to searchText value
-        renderPhoneDetails(phoneDetails, filters);
-        });
-
         getPhoneList();
 
     })
