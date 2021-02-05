@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phone Contact Api using JS</title>
+    <style>
+        .unordered-list{
+            display: flex;
+            flex-direction: row;
+            max-width: 100%;
+            flex-wrap: wrap;
+        }
+        li{
+            width: 30%;
+            margin: 5px;
+        }
+
+        .card {
+          box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+          transition: 0.3s;
+        }
+        
+        .card:hover {
+          box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+        }
+        
+        .container {
+          padding: 2px 16px;
+        }
+        
+        ul{
+            list-style-type: none;
+        }
+
+        .loader{
+            position: absolute;
+            top: 0px;
+            width: 100%;
+            height: 100%;
+            opacity: 0.8;
+        }
+
+        h1 {
+        color:orangered;
+        }
+        input {
+        padding:.5rem 2rem;
+        }
+        </style>
+</head>
+<body>
+    <div class="container">
+        <h1 style="text-align: center;">State|Region Police Command</h1>
+        <input type="text" id="search-text" placeholder="search phone..">
+        <div id="phones"></div>
+        <ul class="unordered-list" id="phone-list">
+            <img id="loader" style="display: none;" class="loader" src="loader.gif" alt="loading" width="20px" height="20px" >
+        </ul>
+    </div>
+
+    <script>    
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const getPhoneList = () => {
+            document.getElementById('loader').style.display = "block";
+                fetch('https://emajency.com/js/number.json')
+                .then(resp => resp.json())
+                .then(data => renderPhoneList(data))
+                .catch( err => {
+                    document.getElementById('loader').style.display = "none";
+                    document.querySelector('#phone-list').append(`${err}`);   
+                })
+            }
+
+            const renderPhoneList = (data) => {
+                console.log(data);
+                const phoneDetails = data ;
+                for(const phone of data){
+                    const phoneUl = document.querySelector('#phone-list');
+                    const phoneLi = document.createElement('li');
+                    const br = document.createElement('br');
+                    const hr = document.createElement('hr');
+                    phoneLi.dataset.id = phone.id;
+                    phoneLi.innerHTML =
+                    `<div class="card"> 
+                        <div class="container">
+                        <h4><b>phone </b><br> ${phone['name']} </h4>
+                        <span><b>Capital </b><br> ${phone['capital']}</span>
+                        <p> 
+                            <img src="${phone['flag']}" alt="phone flag" style="width:100%"/>   
+                            Region : ${phone['region']}                      
+                        </p>
+                        </div>
+                        </div>`;
+                    document.getElementById('loader').style.display = "none";
+                    phoneUl.append(phoneLi);
+                }
+            }
+
+        const filters = {//when input event is fired, input values are added to the searchText value
+        searchText:""
+        }
+        const renderPhoneDetails = function(arr, filters){
+        const filteredPhone = arr.filter(function(phone){
+            return phone.title.toLowerCase().includes(filters.searchText.toLowerCase());
+        });
+        
+        document.querySelector("#phones").innerHTML = "";//clear phones area before each rendition
+        
+        filteredPhone.forEach( (phone) => {
+            const phoneEl = document.createElement("p");
+            phoneEl.textContent = phone.title;
+            document.querySelector("#phones").appendChild(phoneEl);
+        });
+        }
+        renderPhoneDetails(phoneDetails, filters);//initial render to show actual data in phoneDetails array
+
+        document.querySelector("#search-text").addEventListener("input", function(e){
+        filters.searchText = e.target.value;//every input value sent to searchText value
+        renderPhoneDetails(phoneDetails, filters);
+        });
+
+        getPhoneList();
+
+    })
+    </script>
+</body>
+</html>
